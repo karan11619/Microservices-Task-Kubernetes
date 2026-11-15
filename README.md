@@ -714,6 +714,3 @@ Microservices-Task-Kubernetes/
 
 **Cluster:** `minikube`
 
-**Namespace:** `default`
-
-**Status: READY FOR SUBMISSION 🚀**
