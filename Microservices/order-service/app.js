@@ -1,6 +1,12 @@
 const express = require('express');
 const axios = require('axios');
 const app = express();
+
+// Log every incoming request except health checks (probes call /health every few seconds)
+app.use((req, res, next) => {
+  if (req.url !== '/health') console.log(`[${new Date().toISOString()}] ${req.method} ${req.url} from ${req.ip}`);
+  next();
+});
 app.use(express.json());
 const port = 3002;
 

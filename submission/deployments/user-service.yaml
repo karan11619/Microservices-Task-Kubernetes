@@ -1,0 +1,55 @@
+# Deployment for the User Service (Express app listening on port 3000)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: user-service
+  labels:
+    app: user-service
+    tier: backend
+spec:
+  # Stateless service (returns a fixed user list), 1 replica is enough for local Minikube
+  replicas: 1
+  selector:
+    matchLabels:
+      app: user-service          # must match template.metadata.labels below
+  template:
+    metadata:
+      labels:
+        app: user-service
+        tier: backend
+    spec:
+      containers:
+        - name: user-service
+          image: user-service:1.0     # loaded into Minikube with "minikube image load"
+          imagePullPolicy: Never      # use only the locally loaded image, never pull from a registry
+          ports:
+            - name: http
+              containerPort: 3000     # app.js: const port = 3000
+          env:
+            - name: NODE_ENV
+              value: "production"
+            - name: SERVICE_NAME
+              value: "user-service"
+          resources:
+            requests:                 # guaranteed minimum, used by the scheduler
+              cpu: "50m"
+              memory: "64Mi"
+            limits:                   # hard maximum
+              cpu: "200m"
+              memory: "128Mi"
+          readinessProbe:             # "can this pod receive traffic?"
+            httpGet:
+              path: /health           # app.js: app.get('/health', ...)
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 2
+            failureThreshold: 3
+          livenessProbe:              # "is this pod still alive? if not, restart it"
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 15
+            periodSeconds: 20
+            timeoutSeconds: 2
+            failureThreshold: 3

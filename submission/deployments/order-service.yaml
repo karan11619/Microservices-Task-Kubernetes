@@ -1,0 +1,55 @@
+# Deployment for the Order Service (Express app listening on port 3002)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: order-service
+  labels:
+    app: order-service
+    tier: backend
+spec:
+  # Keep 1 replica: orders are stored in memory, extra replicas would each have a separate order list
+  replicas: 1
+  selector:
+    matchLabels:
+      app: order-service          # must match template.metadata.labels below
+  template:
+    metadata:
+      labels:
+        app: order-service
+        tier: backend
+    spec:
+      containers:
+        - name: order-service
+          image: order-service:1.0     # loaded into Minikube with "minikube image load"
+          imagePullPolicy: Never      # use only the locally loaded image, never pull from a registry
+          ports:
+            - name: http
+              containerPort: 3002     # app.js: const port = 3002
+          env:
+            - name: NODE_ENV
+              value: "production"
+            - name: SERVICE_NAME
+              value: "order-service"
+          resources:
+            requests:                 # guaranteed minimum, used by the scheduler
+              cpu: "50m"
+              memory: "64Mi"
+            limits:                   # hard maximum
+              cpu: "200m"
+              memory: "128Mi"
+          readinessProbe:             # "can this pod receive traffic?"
+            httpGet:
+              path: /health           # app.js: app.get('/health', ...)
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 2
+            failureThreshold: 3
+          livenessProbe:              # "is this pod still alive? if not, restart it"
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 15
+            periodSeconds: 20
+            timeoutSeconds: 2
+            failureThreshold: 3

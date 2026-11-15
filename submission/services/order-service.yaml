@@ -1,0 +1,18 @@
+# ClusterIP Service: gives the order-service pods one stable name and IP inside the cluster
+# Other pods reach it at http://order-service:3002 (DNS: order-service.default.svc.cluster.local)
+apiVersion: v1
+kind: Service
+metadata:
+  name: order-service                 # this name becomes the DNS name
+  labels:
+    app: order-service
+    tier: backend
+spec:
+  type: ClusterIP
+  selector:
+    app: order-service                # send traffic to pods with this label (from the Deployment)
+  ports:
+    - name: http
+      protocol: TCP
+      port: 3002             # port clients call on the Service
+      targetPort: http       # named containerPort (3002) in the pod

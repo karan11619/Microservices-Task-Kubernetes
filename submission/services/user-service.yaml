@@ -1,0 +1,18 @@
+# ClusterIP Service: gives the user-service pods one stable name and IP inside the cluster
+# Other pods reach it at http://user-service:3000 (DNS: user-service.default.svc.cluster.local)
+apiVersion: v1
+kind: Service
+metadata:
+  name: user-service                 # this name becomes the DNS name
+  labels:
+    app: user-service
+    tier: backend
+spec:
+  type: ClusterIP
+  selector:
+    app: user-service                # send traffic to pods with this label (from the Deployment)
+  ports:
+    - name: http
+      protocol: TCP
+      port: 3000             # port clients call on the Service
+      targetPort: http       # named containerPort (3000) in the pod

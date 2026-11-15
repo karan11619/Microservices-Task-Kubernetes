@@ -1,0 +1,18 @@
+# ClusterIP Service: gives the gateway-service pods one stable name and IP inside the cluster
+# Other pods reach it at http://gateway-service:3003 (DNS: gateway-service.default.svc.cluster.local)
+apiVersion: v1
+kind: Service
+metadata:
+  name: gateway-service                 # this name becomes the DNS name
+  labels:
+    app: gateway-service
+    tier: gateway
+spec:
+  type: ClusterIP
+  selector:
+    app: gateway-service                # send traffic to pods with this label (from the Deployment)
+  ports:
+    - name: http
+      protocol: TCP
+      port: 3003             # port clients call on the Service
+      targetPort: http       # named containerPort (3003) in the pod
